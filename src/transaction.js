@@ -28,6 +28,7 @@ function vectorSize (someVector) {
 // By default, assume is a bitcoin transaction
 function Transaction (network = networks.bitcoin) {
   this.version = 1
+  this.persentBlockHash = null
   this.locktime = 0
   this.ins = []
   this.outs = []
@@ -248,6 +249,9 @@ Transaction.fromBuffer = function (buffer, network = networks.bitcoin, __noStric
   }
   var tx = new Transaction(network)
   tx.version = readInt32()
+  if (tx.version === 12) {
+    tx.persentBlockHash = readSlice(32)
+  }
 
   if (coins.isZcash(network)) {
     // Split the header into fOverwintered and nVersion
@@ -505,6 +509,7 @@ Transaction.prototype.zcashTransactionByteLength = function () {
 
 Transaction.prototype.__byteLength = function (__allowWitness) {
   var hasWitnesses = __allowWitness && this.hasWitnesses()
+  var hasPreBlockHash = ((this.version === 12) && (this.persentBlockHash != null))
 
   if (coins.isZcash(this.network)) {
     return this.zcashTransactionByteLength()
@@ -512,6 +517,7 @@ Transaction.prototype.__byteLength = function (__allowWitness) {
 
   return (
     (hasWitnesses ? 10 : 8) +
+    (hasPreBlockHash ? 32 : 0) +
     varuint.encodingLength(this.ins.length) +
     varuint.encodingLength(this.outs.length) +
     this.ins.reduce(function (sum, input) { return sum + 40 + varSliceSize(input.script) }, 0) +
@@ -523,6 +529,9 @@ Transaction.prototype.__byteLength = function (__allowWitness) {
 Transaction.prototype.clone = function () {
   var newTx = new Transaction(this.network)
   newTx.version = this.version
+  if (this.version === 12) {
+    newTx.persentBlockHash = this.persentBlockHash
+  }
   newTx.locktime = this.locktime
   newTx.network = this.network
 
@@ -878,6 +887,9 @@ Transaction.prototype.hashForWitnessV0 = function (inIndex, prevOutScript, value
   var bufferWriter = new BufferWriter(156 + varSliceSize(prevOutScript))
   var input = this.ins[inIndex]
   bufferWriter.writeUInt32(this.version)
+  if (this.version === 12) {
+    bufferWriter.writeSlice(this.persentBlockHash)
+  }
   bufferWriter.writeSlice(hashPrevouts)
   bufferWriter.writeSlice(hashSequence)
   bufferWriter.writeSlice(input.hash)
@@ -988,6 +1000,9 @@ Transaction.prototype.__toBuffer = function (buffer, initialOffset, __allowWitne
     writeUInt32(this.versionGroupId)
   } else {
     writeInt32(this.version)
+    if ((this.version === 12) && (this.persentBlockHash != null)) {
+      writeSlice(this.persentBlockHash)
+    }
   }
 
   var hasWitnesses = __allowWitness && this.hasWitnesses()

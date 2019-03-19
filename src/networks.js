@@ -126,6 +126,16 @@ module.exports = {
     coin: coins.BTG,
     forkId: 0x4F /* 79 */
   },
+  bitcoindiamond: {
+    messagePrefix: '\x18BitcoinDiamond Signed Message:\n',
+    bip32: {
+      public: 0x0488b21e,
+      private: 0x0488ade4
+    },
+    pubKeyHash: 0x00,
+    scriptHash: 0x05,
+    wif: 0x80
+  },
   bitcoin: {
     messagePrefix: '\x18Bitcoin Signed Message:\n',
     bech32: 'bc',

@@ -574,6 +574,15 @@ TransactionBuilder.prototype.setJoinSplits = function (transaction) {
   throw new Error('Invalid transaction with joinsplits')
 }
 
+TransactionBuilder.prototype.setPresentBlockHash = function (blockHash) {
+  if (typeof blockHash === 'string') {
+    // block hashs's are displayed in reverse order, un-reverse it
+    blockHash = Buffer.from(blockHash, 'hex').reverse()
+  }
+  typeforce(types.Hash256bit, blockHash)
+  this.tx.persentBlockHash = blockHash
+}
+
 TransactionBuilder.fromTransaction = function (transaction, network) {
   var txbNetwork = network || networks.bitcoin
   var txb = new TransactionBuilder(txbNetwork)
@@ -584,6 +593,9 @@ TransactionBuilder.fromTransaction = function (transaction, network) {
 
   // Copy transaction fields
   txb.setVersion(transaction.version, transaction.overwintered)
+  if (transaction.version === 12) {
+    txb.setPresentBlockHash(transaction.persentBlockHash)
+  }
   txb.setLockTime(transaction.locktime)
 
   if (coins.isZcash(txbNetwork)) {
