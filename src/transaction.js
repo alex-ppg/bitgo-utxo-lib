@@ -28,7 +28,7 @@ function vectorSize (someVector) {
 // By default, assume is a bitcoin transaction
 function Transaction (network = networks.bitcoin) {
   this.version = 1
-  this.persentBlockHash = null
+  this.presentBlockHash = null
   this.locktime = 0
   this.ins = []
   this.outs = []
@@ -250,7 +250,7 @@ Transaction.fromBuffer = function (buffer, network = networks.bitcoin, __noStric
   var tx = new Transaction(network)
   tx.version = readInt32()
   if (tx.version === 12) {
-    tx.persentBlockHash = readSlice(32)
+    tx.presentBlockHash = readSlice(32)
   }
 
   if (coins.isZcash(network)) {
@@ -509,7 +509,7 @@ Transaction.prototype.zcashTransactionByteLength = function () {
 
 Transaction.prototype.__byteLength = function (__allowWitness) {
   var hasWitnesses = __allowWitness && this.hasWitnesses()
-  var hasPreBlockHash = ((this.version === 12) && (this.persentBlockHash != null))
+  var hasPreBlockHash = ((this.version === 12) && (this.presentBlockHash != null))
 
   if (coins.isZcash(this.network)) {
     return this.zcashTransactionByteLength()
@@ -530,7 +530,7 @@ Transaction.prototype.clone = function () {
   var newTx = new Transaction(this.network)
   newTx.version = this.version
   if (this.version === 12) {
-    newTx.persentBlockHash = this.persentBlockHash
+    newTx.presentBlockHash = this.presentBlockHash
   }
   newTx.locktime = this.locktime
   newTx.network = this.network
@@ -888,7 +888,7 @@ Transaction.prototype.hashForWitnessV0 = function (inIndex, prevOutScript, value
   var input = this.ins[inIndex]
   bufferWriter.writeUInt32(this.version)
   if (this.version === 12) {
-    bufferWriter.writeSlice(this.persentBlockHash)
+    bufferWriter.writeSlice(this.presentBlockHash)
   }
   bufferWriter.writeSlice(hashPrevouts)
   bufferWriter.writeSlice(hashSequence)
@@ -1000,8 +1000,8 @@ Transaction.prototype.__toBuffer = function (buffer, initialOffset, __allowWitne
     writeUInt32(this.versionGroupId)
   } else {
     writeInt32(this.version)
-    if ((this.version === 12) && (this.persentBlockHash != null)) {
-      writeSlice(this.persentBlockHash)
+    if ((this.version === 12) && (this.presentBlockHash != null)) {
+      writeSlice(this.presentBlockHash)
     }
   }
 
